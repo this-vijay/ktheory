@@ -3,7 +3,6 @@ import numpy as np
 import scipy as sp
 import equation_count as eq
 
-possible_sigs = []
 class Grassmannian(object):
 	def __init__(self, type, m , n):
 		self.type = type
@@ -200,7 +199,7 @@ class Grassmannian(object):
 		simple_ups = []
 		nonsimple_ups = []
 		for t in ups:
-			if t[0] > 0 and t[1]-t[0] > 1:
+			if (t[0] > 0 and t[1]-t[0] > 1) or (t[1]-t[0] > 3):
 				nonsimple_ups.append(t)
 			else:
 				simple_ups.append(t)
@@ -222,8 +221,12 @@ class Grassmannian(object):
 				for t in simple_ups:
 					if s[1] == t[0]:
 						use_again.append(s)
-		#print maximal_set
+		if (-1,2) in simple_ups and (2,3) in simple_ups:
+			use_again.append((-1,2))
+						
+		#print maximal_sets
 		#print simple_ups
+		#print nonsimple_ups
 		#print use_again
 		maximals = []
 		for M in maximal_sets:
@@ -245,10 +248,8 @@ class Grassmannian(object):
 
 	def trans2perm(self,s):
 		perm = range(1, self.m+self.k+1)
-		if s[0] > 0:
-			perm[s[0]-1],perm[s[1]-1] = perm[s[1]-1],perm[s[0]-1]
-		else:
-			perm[0] = -1
+		sign_change = cmp(s[0],0)*cmp(s[1],0)
+		perm[abs(s[0])-1],perm[abs(s[1])-1] = sign_change*perm[abs(s[1])-1],sign_change*perm[abs(s[0])-1]
 		return perm
 			
 	def test_neighbors(self):
@@ -280,10 +281,10 @@ class Grassmannian(object):
 	
 	def covering(self, X, Y):
 		def ref(Z):
-			if Z[0]*Z[1] < 0:
-				return tuple(sorted(Z))
-			else:
-				return tuple(sorted((abs(Z[0]), abs(Z[1]))))
+			sign_change = cmp(Z[0],0)*cmp(Z[1],0)
+			t = sorted((abs(Z[0]), abs(Z[1])))
+			t[0] = sign_change*t[0]
+			return tuple(t)
 		
 		if self.leq(self.perm2index(X),self.perm2index(Y)):
 			k = [ ref((X[i], Y[i])) for i in range(self.m+self.k) if X[i] != Y[i] ]
@@ -414,28 +415,28 @@ class Grassmannian(object):
 					return False
 		return True
 
-	def index_set_leq(self, R, S):
-		if R not in self.schubert_list or S not in self.schubert_list:
-			raise ValueError('input not an index set in this Grassmannian!')
-		for i in range(self.m):
-			if R[i] > S[i]:
-				return False
-		if self.type == 'D':
-			for i in range(self.m):
-				if (S[i] == self.n+2) and (R[i] == self.m+self.k):
-					return False
-# 			if (self.dimension%2) == 1 and self.codim(R) == (self.dimension+1)/2 and self.codim(S) == (self.dimension-1)/2:
-# 				R_shift = []
-# 				for r in R:
-# 					if r in [self.n+1, self.n+2]:
-# 						R_shift.append(self.N+1-r)
-# 					else:
-# 						R_shift.append(r)
-# 				R_reflect = [self.N+1-r for r in reversed(R_shift)]		
-# 				if R_shift != R and S == R_reflect:
+# 	def index_set_leq(self, R, S):
+# 		if R not in self.schubert_list or S not in self.schubert_list:
+# 			raise ValueError('input not an index set in this Grassmannian!')
+# 		for i in range(self.m):
+# 			if R[i] > S[i]:
+# 				return False
+# 		if self.type == 'D':
+# 			for i in range(self.m):
+# 				if (S[i] == self.n+2) and (R[i] == self.m+self.k):
 # 					return False
-		return True
-		#return all([R[i] <= S[i] for i in range(self.m)])
+# # 			if (self.dimension%2) == 1 and self.codim(R) == (self.dimension+1)/2 and self.codim(S) == (self.dimension-1)/2:
+# # 				R_shift = []
+# # 				for r in R:
+# # 					if r in [self.n+1, self.n+2]:
+# # 						R_shift.append(self.N+1-r)
+# # 					else:
+# # 						R_shift.append(r)
+# # 				R_reflect = [self.N+1-r for r in reversed(R_shift)]		
+# # 				if R_shift != R and S == R_reflect:
+# # 					return False
+# 		return True
+# 		#return all([R[i] <= S[i] for i in range(self.m)])
 	
 	def leq(self, R, S):
 		if R not in self.schubert_list or S not in self.schubert_list:
@@ -734,184 +735,184 @@ class Grassmannian(object):
 			return 0, 0
 		return eq.num_equations(P,Q,self.n, self.type, self.class_type(P) == self.class_type(Q))
 	
-	def num_equations(self, P, Q):
-		cuts = set([])
-		quad = 0
-		lin = 0
-		lin_eqns = set([])
-		diagram = np.array([[int(j in range(Q[i], P[i]+1)) for j in range(1, self.N+1)] for i in range(self.m)])
-		
-		#if not self.index_set_leq(Q, P):
-		if self.intersection_matrix[self.schubert_list.index(P)][self.schubert_list.index(Q)] == 0:
-			return 0, 0
-		for c in range(Q[0]):
-			cuts.add(c)
-			if c > 0:
-				lin_eqns.add(c)
-		for c in range(Q[0], P[self.m-1]):
-			for j in range(self.m-1):
-				if (P[j] <= c) and (c < Q[j+1]):
-					cuts.add(c)
-					if P[j] < c:
-						lin_eqns.add(c)
-		for c in range(P[self.m-1], self.N+1):
-			cuts.add(c)
-			if c > P[self.m-1]:
-				lin_eqns.add(c)
-		for j in range(self.m):
-			if P[j] == Q[j]:
-				lin_eqns.add(self.N + 1 - P[j])
-		if self.type == 'D' and self.m >=3:
-			#add strange cuts
-			for j in range(self.m-2):
-				if (P[j] in [self.n+1, self.n+2]) and (Q[j+1] == self.n) and (P[j+1] == self.n+3) and (Q[j+2] + P[j] == self.N+1):
-					cuts.add(self.n-1)
-					cuts.add(self.n+3)
-		if self.type == 'D' and (self.m == 1):
-			if P[0] == self.n+2:
-				lin_eqns.add(self.n+1)
-			if Q[0] == self.n+1:
-				lin_eqns.add(self.n+2)
-		if self.type == 'D' and (self.m > 1):
-			# add linear eqn 'x_(n+1) = 0' 
-			add = False
-			if (P[0] == self.n+2) and (Q[1] > self.n+1):
-				add = True
-			if (P[self.m-1] == self.n+2) and (P[self.m-2] < self.n+1):
-				add = True
-			for j in range(1,self.m-1):
-				if (P[j] == self.n+2) and (Q[j+1] > self.n+1) and (P[j-1] < self.n+1):
-					add = True
-			if add and (self.n+1 not in lin_eqns):
-				lin_eqns.add(self.n+1)
-			# add linear eqn 'x_(n+2) = 0'
-			add = False
-			if (Q[0] == self.n+1) and (Q[1] > self.n+2):
-				add = True
-			if (Q[self.m-1] == self.n+1) and (P[self.m-2] < self.n+2):
-				add = True
-			for j in range(1,self.m-1):
-				if (Q[j] == self.n+1) and (Q[j+1] > self.n+2) and (P[j-1] < self.n+2):
-					add = True
-			if add and (self.n+2 not in lin_eqns):
-				lin_eqns.add(self.n+2)
-			#temp remedy
-# 			if self.m == 2 and self.n == 2:
-# 				if (P == [3,5] and Q == [1,3]) or (P == [4,5] and Q == [1,4]):
-# 					lin_eqns.append(2)
-# 					if 2 not in cuts:
-# 						cuts.append(2)
-# 					if 1 not in cuts:
-# 						cuts.append(1)
-# 				if (P == [3,6] and Q == [2,3]) or (P == [4,6] and Q == [2,4]):
-# 					lin_eqns.append(5)
-# 					if 5 not in cuts:
-# 						cuts.append(5)
-# 					if 4 not in cuts:
-# 						cuts.append(4)
-# 			if self.m == 2 and self.n == 3:
-# 				if (P == [4,6] and Q == [1,4]) or (P == [5,6] and Q == [1,5]):
-# 					lin_eqns.append(3)
-# 					if 3 not in cuts:
-# 						cuts.append(3)
-# 					if 2 not in cuts:
-# 						cuts.append(2)	
-# 				if (P == [4,6] and Q == [2,4]) or (P == [5,6] and Q == [2,5]):
-# 					lin_eqns.append(3)
-# 					if 3 not in cuts:
-# 						cuts.append(3)
-# 					if 2 not in cuts:
-# 						cuts.append(2)
-# 				if (P == [4,7] and Q == [3,4]) or (P == [5,7] and Q == [3,5]):
-# 					lin_eqns.append(6)
-# 					if 6 not in cuts:
-# 						cuts.append(6)
-# 					if 5 not in cuts:
-# 						cuts.append(5)
-# 				if (P == [4,8] and Q == [3,4]) or (P == [5,8] and Q == [3,5]):
-# 					lin_eqns.append(6)
-# 					if 6 not in cuts:
-# 						cuts.append(6)
-# 					if 5 not in cuts:
-# 						cuts.append(5)
-
-# 			for i in range(self.m - 1):
-# 				if (Q[i+1] in [self.n+1, self.n+2]) and (P[i] == Q[i+1]) and (P[i+1] == self.n+3):
-# 					lin_eqns.add(self.n)
-# 					cuts.add(self.n)
+# 	def num_equations(self, P, Q):
+# 		cuts = set([])
+# 		quad = 0
+# 		lin = 0
+# 		lin_eqns = set([])
+# 		diagram = np.array([[int(j in range(Q[i], P[i]+1)) for j in range(1, self.N+1)] for i in range(self.m)])
+# 		
+# 		#if not self.index_set_leq(Q, P):
+# 		if self.intersection_matrix[self.schubert_list.index(P)][self.schubert_list.index(Q)] == 0:
+# 			return 0, 0
+# 		for c in range(Q[0]):
+# 			cuts.add(c)
+# 			if c > 0:
+# 				lin_eqns.add(c)
+# 		for c in range(Q[0], P[self.m-1]):
+# 			for j in range(self.m-1):
+# 				if (P[j] <= c) and (c < Q[j+1]):
+# 					cuts.add(c)
+# 					if P[j] < c:
+# 						lin_eqns.add(c)
+# 		for c in range(P[self.m-1], self.N+1):
+# 			cuts.add(c)
+# 			if c > P[self.m-1]:
+# 				lin_eqns.add(c)
+# 		for j in range(self.m):
+# 			if P[j] == Q[j]:
+# 				lin_eqns.add(self.N + 1 - P[j])
+# 		if self.type == 'D' and self.m >=3:
+# 			#add strange cuts
+# 			for j in range(self.m-2):
+# 				if (P[j] in [self.n+1, self.n+2]) and (Q[j+1] == self.n) and (P[j+1] == self.n+3) and (Q[j+2] + P[j] == self.N+1):
 # 					cuts.add(self.n-1)
-# 				if (P[i] in [self.n+1, self.n+2]) and (Q[i+1] == P[i]) and (Q[i] == self.n):
-# 					lin_eqns.add(self.n+3)
 # 					cuts.add(self.n+3)
-# 					cuts.add(self.n+2)
-					
-			#lone star
-
-			
-			for times in range(5):
-				for i in range(self.m):
-					if P[i] != Q[i]:
-						if Q[i] in [self.n+1, self.n+2] and (self.N + 1 - Q[i]) in lin_eqns:
-							if set(range(Q[i]+1, P[i])) <= lin_eqns:
-								c = self.N + 1 - P[i]
-								lin_eqns.add(c)
-								cuts.add(c)
-								cuts.add(c-1)
-							else:
-								c = min(set(range(Q[i]+1, P[i])) - lin_eqns)
-								if (self.N+1-c) in Q:
-									lin_eqns.add(c)
-									cuts.add(c)
-									cuts.add(c-1)
-								
-						if P[i] in [self.n+1, self.n+2] and (self.N + 1 - P[i]) in lin_eqns:
-							if set(range(Q[i]+1,P[i])) <= lin_eqns:
-								c = self.N + 1 - Q[i]
-								lin_eqns.add(c)
-								cuts.add(c)
-								cuts.add(c-1)
-							else:
-								c = max(set(range(Q[i]+1, P[i])) - lin_eqns)
-								if (self.N+1-c) in P:
-									lin_eqns.add(c)
-									cuts.add(c)
-									cuts.add(c-1)	
-									
-			#temp remedy
-# 			if (P == [4,6,7] and Q == [1,3,5]) or (P == [5,6,7] and Q == [1,3,4]):
-#  					lin_eqns.add(2)
-#  					cuts.add(2)
-#  					cuts.add(1)
-#  			if (P == [4,6,8] and Q == [2,3,5]) or (P == [5,6,8] and Q == [2,3,4]):
-#  					lin_eqns.add(7)
-#  					cuts.add(7)
-#  					cuts.add(6)
- 					
-			#attempt to capture remedy
-			for times in range(5):
-				for c in lin_eqns:
-					diagram.T[c-1] = [0 for r in range(self.m)]
-				need = set([])
-				for c in cuts:
-					if c+1 in cuts:
-						if sum(diagram.T[c]) == 1:
-							need.add(self.N+1-(c+1))
-				for l in need:
-					lin_eqns.add(l)
-					cuts.add(l)
-					cuts.add(l-1)
-			
-		lin = len(lin_eqns)
-		I=[]
-		for c in range(self.n+1):
-			if (c in cuts) or ((self.N-c) in cuts):
-				I.append(c)
-		if self.OG:
-			I.append(self.n+1)
-		for c in I:
-			if (c >= 2) and ((c-1) not in I):
-				quad += 1
-		return quad, lin
+# 		if self.type == 'D' and (self.m == 1):
+# 			if P[0] == self.n+2:
+# 				lin_eqns.add(self.n+1)
+# 			if Q[0] == self.n+1:
+# 				lin_eqns.add(self.n+2)
+# 		if self.type == 'D' and (self.m > 1):
+# 			# add linear eqn 'x_(n+1) = 0' 
+# 			add = False
+# 			if (P[0] == self.n+2) and (Q[1] > self.n+1):
+# 				add = True
+# 			if (P[self.m-1] == self.n+2) and (P[self.m-2] < self.n+1):
+# 				add = True
+# 			for j in range(1,self.m-1):
+# 				if (P[j] == self.n+2) and (Q[j+1] > self.n+1) and (P[j-1] < self.n+1):
+# 					add = True
+# 			if add and (self.n+1 not in lin_eqns):
+# 				lin_eqns.add(self.n+1)
+# 			# add linear eqn 'x_(n+2) = 0'
+# 			add = False
+# 			if (Q[0] == self.n+1) and (Q[1] > self.n+2):
+# 				add = True
+# 			if (Q[self.m-1] == self.n+1) and (P[self.m-2] < self.n+2):
+# 				add = True
+# 			for j in range(1,self.m-1):
+# 				if (Q[j] == self.n+1) and (Q[j+1] > self.n+2) and (P[j-1] < self.n+2):
+# 					add = True
+# 			if add and (self.n+2 not in lin_eqns):
+# 				lin_eqns.add(self.n+2)
+# 			#temp remedy
+# # 			if self.m == 2 and self.n == 2:
+# # 				if (P == [3,5] and Q == [1,3]) or (P == [4,5] and Q == [1,4]):
+# # 					lin_eqns.append(2)
+# # 					if 2 not in cuts:
+# # 						cuts.append(2)
+# # 					if 1 not in cuts:
+# # 						cuts.append(1)
+# # 				if (P == [3,6] and Q == [2,3]) or (P == [4,6] and Q == [2,4]):
+# # 					lin_eqns.append(5)
+# # 					if 5 not in cuts:
+# # 						cuts.append(5)
+# # 					if 4 not in cuts:
+# # 						cuts.append(4)
+# # 			if self.m == 2 and self.n == 3:
+# # 				if (P == [4,6] and Q == [1,4]) or (P == [5,6] and Q == [1,5]):
+# # 					lin_eqns.append(3)
+# # 					if 3 not in cuts:
+# # 						cuts.append(3)
+# # 					if 2 not in cuts:
+# # 						cuts.append(2)	
+# # 				if (P == [4,6] and Q == [2,4]) or (P == [5,6] and Q == [2,5]):
+# # 					lin_eqns.append(3)
+# # 					if 3 not in cuts:
+# # 						cuts.append(3)
+# # 					if 2 not in cuts:
+# # 						cuts.append(2)
+# # 				if (P == [4,7] and Q == [3,4]) or (P == [5,7] and Q == [3,5]):
+# # 					lin_eqns.append(6)
+# # 					if 6 not in cuts:
+# # 						cuts.append(6)
+# # 					if 5 not in cuts:
+# # 						cuts.append(5)
+# # 				if (P == [4,8] and Q == [3,4]) or (P == [5,8] and Q == [3,5]):
+# # 					lin_eqns.append(6)
+# # 					if 6 not in cuts:
+# # 						cuts.append(6)
+# # 					if 5 not in cuts:
+# # 						cuts.append(5)
+# 
+# # 			for i in range(self.m - 1):
+# # 				if (Q[i+1] in [self.n+1, self.n+2]) and (P[i] == Q[i+1]) and (P[i+1] == self.n+3):
+# # 					lin_eqns.add(self.n)
+# # 					cuts.add(self.n)
+# # 					cuts.add(self.n-1)
+# # 				if (P[i] in [self.n+1, self.n+2]) and (Q[i+1] == P[i]) and (Q[i] == self.n):
+# # 					lin_eqns.add(self.n+3)
+# # 					cuts.add(self.n+3)
+# # 					cuts.add(self.n+2)
+# 					
+# 			#lone star
+# 
+# 			
+# 			for times in range(5):
+# 				for i in range(self.m):
+# 					if P[i] != Q[i]:
+# 						if Q[i] in [self.n+1, self.n+2] and (self.N + 1 - Q[i]) in lin_eqns:
+# 							if set(range(Q[i]+1, P[i])) <= lin_eqns:
+# 								c = self.N + 1 - P[i]
+# 								lin_eqns.add(c)
+# 								cuts.add(c)
+# 								cuts.add(c-1)
+# 							else:
+# 								c = min(set(range(Q[i]+1, P[i])) - lin_eqns)
+# 								if (self.N+1-c) in Q:
+# 									lin_eqns.add(c)
+# 									cuts.add(c)
+# 									cuts.add(c-1)
+# 								
+# 						if P[i] in [self.n+1, self.n+2] and (self.N + 1 - P[i]) in lin_eqns:
+# 							if set(range(Q[i]+1,P[i])) <= lin_eqns:
+# 								c = self.N + 1 - Q[i]
+# 								lin_eqns.add(c)
+# 								cuts.add(c)
+# 								cuts.add(c-1)
+# 							else:
+# 								c = max(set(range(Q[i]+1, P[i])) - lin_eqns)
+# 								if (self.N+1-c) in P:
+# 									lin_eqns.add(c)
+# 									cuts.add(c)
+# 									cuts.add(c-1)	
+# 									
+# 			#temp remedy
+# # 			if (P == [4,6,7] and Q == [1,3,5]) or (P == [5,6,7] and Q == [1,3,4]):
+# #  					lin_eqns.add(2)
+# #  					cuts.add(2)
+# #  					cuts.add(1)
+# #  			if (P == [4,6,8] and Q == [2,3,5]) or (P == [5,6,8] and Q == [2,3,4]):
+# #  					lin_eqns.add(7)
+# #  					cuts.add(7)
+# #  					cuts.add(6)
+#  					
+# 			#attempt to capture remedy
+# 			for times in range(5):
+# 				for c in lin_eqns:
+# 					diagram.T[c-1] = [0 for r in range(self.m)]
+# 				need = set([])
+# 				for c in cuts:
+# 					if c+1 in cuts:
+# 						if sum(diagram.T[c]) == 1:
+# 							need.add(self.N+1-(c+1))
+# 				for l in need:
+# 					lin_eqns.add(l)
+# 					cuts.add(l)
+# 					cuts.add(l-1)
+# 			
+# 		lin = len(lin_eqns)
+# 		I=[]
+# 		for c in range(self.n+1):
+# 			if (c in cuts) or ((self.N-c) in cuts):
+# 				I.append(c)
+# 		if self.OG:
+# 			I.append(self.n+1)
+# 		for c in I:
+# 			if (c >= 2) and ((c-1) not in I):
+# 				quad += 1
+# 		return quad, lin
 
 	def h(self, P, Q):
 		S1 = []
