@@ -728,6 +728,10 @@ class Grassmannian(object):
 		if (self.n+1 in P) or (self.n+2 in P):
 			return 1 + len([c for c in range(1, self.n+2) if c not in P])%2
 		return 0
+
+
+
+
 ####CALCULATE TRIPLE INTERSECTION NUMBERS AND PRODUCTS WITH SPECIAL SCHUBERT CLASSES
 	
 	def outsourced_num_equations(self, P,Q):
@@ -735,184 +739,7 @@ class Grassmannian(object):
 			return 0, 0
 		return eq.num_equations(P,Q,self.n, self.type, self.class_type(P) == self.class_type(Q))
 	
-# 	def num_equations(self, P, Q):
-# 		cuts = set([])
-# 		quad = 0
-# 		lin = 0
-# 		lin_eqns = set([])
-# 		diagram = np.array([[int(j in range(Q[i], P[i]+1)) for j in range(1, self.N+1)] for i in range(self.m)])
-# 		
-# 		#if not self.index_set_leq(Q, P):
-# 		if self.intersection_matrix[self.schubert_list.index(P)][self.schubert_list.index(Q)] == 0:
-# 			return 0, 0
-# 		for c in range(Q[0]):
-# 			cuts.add(c)
-# 			if c > 0:
-# 				lin_eqns.add(c)
-# 		for c in range(Q[0], P[self.m-1]):
-# 			for j in range(self.m-1):
-# 				if (P[j] <= c) and (c < Q[j+1]):
-# 					cuts.add(c)
-# 					if P[j] < c:
-# 						lin_eqns.add(c)
-# 		for c in range(P[self.m-1], self.N+1):
-# 			cuts.add(c)
-# 			if c > P[self.m-1]:
-# 				lin_eqns.add(c)
-# 		for j in range(self.m):
-# 			if P[j] == Q[j]:
-# 				lin_eqns.add(self.N + 1 - P[j])
-# 		if self.type == 'D' and self.m >=3:
-# 			#add strange cuts
-# 			for j in range(self.m-2):
-# 				if (P[j] in [self.n+1, self.n+2]) and (Q[j+1] == self.n) and (P[j+1] == self.n+3) and (Q[j+2] + P[j] == self.N+1):
-# 					cuts.add(self.n-1)
-# 					cuts.add(self.n+3)
-# 		if self.type == 'D' and (self.m == 1):
-# 			if P[0] == self.n+2:
-# 				lin_eqns.add(self.n+1)
-# 			if Q[0] == self.n+1:
-# 				lin_eqns.add(self.n+2)
-# 		if self.type == 'D' and (self.m > 1):
-# 			# add linear eqn 'x_(n+1) = 0' 
-# 			add = False
-# 			if (P[0] == self.n+2) and (Q[1] > self.n+1):
-# 				add = True
-# 			if (P[self.m-1] == self.n+2) and (P[self.m-2] < self.n+1):
-# 				add = True
-# 			for j in range(1,self.m-1):
-# 				if (P[j] == self.n+2) and (Q[j+1] > self.n+1) and (P[j-1] < self.n+1):
-# 					add = True
-# 			if add and (self.n+1 not in lin_eqns):
-# 				lin_eqns.add(self.n+1)
-# 			# add linear eqn 'x_(n+2) = 0'
-# 			add = False
-# 			if (Q[0] == self.n+1) and (Q[1] > self.n+2):
-# 				add = True
-# 			if (Q[self.m-1] == self.n+1) and (P[self.m-2] < self.n+2):
-# 				add = True
-# 			for j in range(1,self.m-1):
-# 				if (Q[j] == self.n+1) and (Q[j+1] > self.n+2) and (P[j-1] < self.n+2):
-# 					add = True
-# 			if add and (self.n+2 not in lin_eqns):
-# 				lin_eqns.add(self.n+2)
-# 			#temp remedy
-# # 			if self.m == 2 and self.n == 2:
-# # 				if (P == [3,5] and Q == [1,3]) or (P == [4,5] and Q == [1,4]):
-# # 					lin_eqns.append(2)
-# # 					if 2 not in cuts:
-# # 						cuts.append(2)
-# # 					if 1 not in cuts:
-# # 						cuts.append(1)
-# # 				if (P == [3,6] and Q == [2,3]) or (P == [4,6] and Q == [2,4]):
-# # 					lin_eqns.append(5)
-# # 					if 5 not in cuts:
-# # 						cuts.append(5)
-# # 					if 4 not in cuts:
-# # 						cuts.append(4)
-# # 			if self.m == 2 and self.n == 3:
-# # 				if (P == [4,6] and Q == [1,4]) or (P == [5,6] and Q == [1,5]):
-# # 					lin_eqns.append(3)
-# # 					if 3 not in cuts:
-# # 						cuts.append(3)
-# # 					if 2 not in cuts:
-# # 						cuts.append(2)	
-# # 				if (P == [4,6] and Q == [2,4]) or (P == [5,6] and Q == [2,5]):
-# # 					lin_eqns.append(3)
-# # 					if 3 not in cuts:
-# # 						cuts.append(3)
-# # 					if 2 not in cuts:
-# # 						cuts.append(2)
-# # 				if (P == [4,7] and Q == [3,4]) or (P == [5,7] and Q == [3,5]):
-# # 					lin_eqns.append(6)
-# # 					if 6 not in cuts:
-# # 						cuts.append(6)
-# # 					if 5 not in cuts:
-# # 						cuts.append(5)
-# # 				if (P == [4,8] and Q == [3,4]) or (P == [5,8] and Q == [3,5]):
-# # 					lin_eqns.append(6)
-# # 					if 6 not in cuts:
-# # 						cuts.append(6)
-# # 					if 5 not in cuts:
-# # 						cuts.append(5)
-# 
-# # 			for i in range(self.m - 1):
-# # 				if (Q[i+1] in [self.n+1, self.n+2]) and (P[i] == Q[i+1]) and (P[i+1] == self.n+3):
-# # 					lin_eqns.add(self.n)
-# # 					cuts.add(self.n)
-# # 					cuts.add(self.n-1)
-# # 				if (P[i] in [self.n+1, self.n+2]) and (Q[i+1] == P[i]) and (Q[i] == self.n):
-# # 					lin_eqns.add(self.n+3)
-# # 					cuts.add(self.n+3)
-# # 					cuts.add(self.n+2)
-# 					
-# 			#lone star
-# 
-# 			
-# 			for times in range(5):
-# 				for i in range(self.m):
-# 					if P[i] != Q[i]:
-# 						if Q[i] in [self.n+1, self.n+2] and (self.N + 1 - Q[i]) in lin_eqns:
-# 							if set(range(Q[i]+1, P[i])) <= lin_eqns:
-# 								c = self.N + 1 - P[i]
-# 								lin_eqns.add(c)
-# 								cuts.add(c)
-# 								cuts.add(c-1)
-# 							else:
-# 								c = min(set(range(Q[i]+1, P[i])) - lin_eqns)
-# 								if (self.N+1-c) in Q:
-# 									lin_eqns.add(c)
-# 									cuts.add(c)
-# 									cuts.add(c-1)
-# 								
-# 						if P[i] in [self.n+1, self.n+2] and (self.N + 1 - P[i]) in lin_eqns:
-# 							if set(range(Q[i]+1,P[i])) <= lin_eqns:
-# 								c = self.N + 1 - Q[i]
-# 								lin_eqns.add(c)
-# 								cuts.add(c)
-# 								cuts.add(c-1)
-# 							else:
-# 								c = max(set(range(Q[i]+1, P[i])) - lin_eqns)
-# 								if (self.N+1-c) in P:
-# 									lin_eqns.add(c)
-# 									cuts.add(c)
-# 									cuts.add(c-1)	
-# 									
-# 			#temp remedy
-# # 			if (P == [4,6,7] and Q == [1,3,5]) or (P == [5,6,7] and Q == [1,3,4]):
-# #  					lin_eqns.add(2)
-# #  					cuts.add(2)
-# #  					cuts.add(1)
-# #  			if (P == [4,6,8] and Q == [2,3,5]) or (P == [5,6,8] and Q == [2,3,4]):
-# #  					lin_eqns.add(7)
-# #  					cuts.add(7)
-# #  					cuts.add(6)
-#  					
-# 			#attempt to capture remedy
-# 			for times in range(5):
-# 				for c in lin_eqns:
-# 					diagram.T[c-1] = [0 for r in range(self.m)]
-# 				need = set([])
-# 				for c in cuts:
-# 					if c+1 in cuts:
-# 						if sum(diagram.T[c]) == 1:
-# 							need.add(self.N+1-(c+1))
-# 				for l in need:
-# 					lin_eqns.add(l)
-# 					cuts.add(l)
-# 					cuts.add(l-1)
-# 			
-# 		lin = len(lin_eqns)
-# 		I=[]
-# 		for c in range(self.n+1):
-# 			if (c in cuts) or ((self.N-c) in cuts):
-# 				I.append(c)
-# 		if self.OG:
-# 			I.append(self.n+1)
-# 		for c in I:
-# 			if (c >= 2) and ((c-1) not in I):
-# 				quad += 1
-# 		return quad, lin
+
 
 	def h(self, P, Q):
 		S1 = []
@@ -1100,15 +927,15 @@ class Grassmannian(object):
 						if ((-1)**(self.distance(P, self.schubert_list[i]) - r)) * product_class[i] < 0:
 							print str(P) + ' * ' + str(self.special_schubert(r, family)) + '=' + self.print_class(self.product(P, r, family)) + ' has error in sign of ' + str(self.schubert_list[i])
 	
-	def test_alternating_monk(self):
-		for p in range(len(self.schubert_list)):
-			P = self.schubert_list[p]
-			perm = self.perm_list[p]
-			print p
-			product_class = self.monk(2,perm)
-			for i in range(self.num_classes):
-				if ((-1)**(self.distance(P, self.schubert_list[i]) - 1)) * product_class[i] < 0:
-					print str(P) + ' * ' + str(self.special_schubert(1, 0)) + '=' + self.print_class(product_class) + ' has error in sign of ' + str(self.schubert_list[i])
+# 	def test_alternating_monk(self):
+# 		for p in range(len(self.schubert_list)):
+# 			P = self.schubert_list[p]
+# 			perm = self.perm_list[p]
+# 			print p
+# 			product_class = self.monk(2,perm)
+# 			for i in range(self.num_classes):
+# 				if ((-1)**(self.distance(P, self.schubert_list[i]) - 1)) * product_class[i] < 0:
+# 					print str(P) + ' * ' + str(self.special_schubert(1, 0)) + '=' + self.print_class(product_class) + ' has error in sign of ' + str(self.schubert_list[i])
 
 	def test_goes_to(self):
 		for P in self.schubert_list:
@@ -1130,14 +957,14 @@ class Grassmannian(object):
 							print 'chi('+str(P) + ', ' +str(T) + ', ' + str(self.special_classes[s]) + ')=  something nonzero, despite 2x2 squares'
 
 
-	def test_monk(self):
-		self.load_cartan_matrix()
-		#for p in range(len(self.schubert_list)):
-		for p in [881, 883, 884, 887, 889, 890, 892, 893, 894, 915, 916, 925, 926, 934, 1020, 1026, 1030, 1036, 1040, 1076, 1091, 1462, 1465, 1472, 1475, 1479, 1515, 1530, 1675, 1690]:
-			print p
-			P = self.schubert_list[p]
-			if (self.monk(2,self.index2perm(P)) != self.product(P,1,0)).any():
-				print 'error at ' + str(P)
+# 	def test_monk(self):
+# 		self.load_cartan_matrix()
+# 		#for p in range(len(self.schubert_list)):
+# 		for p in [881, 883, 884, 887, 889, 890, 892, 893, 894, 915, 916, 925, 926, 934, 1020, 1026, 1030, 1036, 1040, 1076, 1091, 1462, 1465, 1472, 1475, 1479, 1515, 1530, 1675, 1690]:
+# 			print p
+# 			P = self.schubert_list[p]
+# 			if (self.monk(2,self.index2perm(P)) != self.product(P,1,0)).any():
+# 				print 'error at ' + str(P)
 		
 ####LOAD PIERI COEFS FROM FILE
 
@@ -1161,81 +988,7 @@ class Grassmannian(object):
 
 #####STUFF NOT IN GRASSMANNIAN CLASS
 
-def phi(g, h, V):
-	image = np.array([0 for P in h.schubert_list])
-	#V = g.dualize(V)
-	for p in (np.nonzero(V))[0]:
-		P = g.schubert_list[p]
-		lam = g.index2part(P)
-		lam.append(h.k)
-		lam.sort()
-		lam.reverse()
-		lam1 = lam + [1]
-		lam2 = lam + [2]
-		Q1 = h.part2index(lam1)
-		Q2 = h.part2index(lam2)
-		image += V[p]*(h.index2vector(Q1) - h.index2vector(Q2))
-	return image
-	#return h.dualize(image)
-	
-	
-#def action(h,r):
-#	v = np.array([0 for P in h.schubert_list])
-	
-	#if r < h.k:
-	#	v += (imP[q])*(np.array(h.product(Q,r,0)))
-	#if r == h.k:
-	#	v += (imP[q])*(np.array(h.product(Q,r,0)))
-	#	v += (imP[q])*(np.array(h.product(Q,r,1)))
-	#	if r>1:
-	#		v -= (imP[q])*(np.array(h.product(Q,r-1,0)))
-	#if r == h.k+1:
-	#	v += 2*(imP[q])*(np.array(h.product(Q,r,0)))
-	#	v -= (imP[q])*(np.array(h.product(Q,r-1,0)))
-	#	v -= (imP[q])*(np.array(h.product(Q,r-1,1)))
-	#if r > h.k+1:
-	#	v += 2*(imP[q])*(np.array(h.product(Q,r,0)))
-	#	v -= (imP[q])*(np.array(h.product(Q,r-1,0)))
-	
-#	for f in range(h.num_families(r)): 
-#		v += h.index2vector(h.special_schubert(r,f))
-#	return v
 
-def test_action(g, h):
-	g.build_intersection_matrix()
-	h.build_intersection_matrix()
-	for r in range(1,len(g.special_classes)+1):
-		print ''
-		print 'r='+str(r)
-		for P in [g.schubert_list[len(g.schubert_list)-1]]:
-		#for P in g.schubert_list:
-			print 'class='+str(P)
-			Pr = np.array(g.product(P,r,0))
-			if r > g.k:
-				Pr += np.array(g.product(P,r,0))
-				Pr -= np.array(g.product(P,r+1,0))
-			print h.print_class(phi(g,h,Pr))
-			
-			v = np.array([0 for Q in h.schubert_list])
-			imP = phi(g,h,g.index2vector(P))
-			for q in (np.nonzero(imP))[0]:
-				Q = h.schubert_list[q]
-				
-				if r < h.k:
-					v += (imP[q])*(np.array(h.product(Q,r,0)))
-				if r == h.k:
-					v += (imP[q])*(np.array(h.product(Q,r,0)))
-					v += (imP[q])*(np.array(h.product(Q,r,1)))
-					v -= (imP[q])*(np.array(h.product(Q,r+1,0)))
-				if r > h.k:
-					v += 2*(imP[q])*(np.array(h.product(Q,r,0)))
-					v += (imP[q])*(np.array(h.product(Q,r+1,0)))
-				
-				#for f in range(h.num_families(r)): 
-					#print (imP[q])*(h.product(Q,r,f))
-				#	v += (imP[q])*(np.array(h.product(Q,r,f)))	
-			print h.print_class(v)
-	
 def bad_reflections(g,T):
 	perm = g.index2perm(T)
 	refs = g.simple_reflections() 
@@ -1268,7 +1021,14 @@ def replace_all(text, dic):
 	return text
 
 def write_pieri_file(g, input_filename, output_filename):
-	d = g.index2perm_dict()
+
+	def index2perm_dict(g):
+		d = {}
+		for P in g.schubert_list:
+			d['X['+','.join(str(n) for n in g.index2perm(P))+']'] = '['+','.join(str(n) for n in P)+']'
+		return d
+		
+	d = index2perm_dict(g)
 	newfile = open(output_filename+'_temp', 'w')
 	f = open(input_filename, 'r')
 	newfile.writelines([replace_all(l, d) for l in f.readlines()])
