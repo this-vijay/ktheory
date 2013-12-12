@@ -3,7 +3,7 @@ import numpy as np
 import scipy as sp
 import permutation_functions as pf
 import sys
-
+import sympy
 
 class Grassmannian(object):
 	def __init__(self, type, m , n):
@@ -31,10 +31,14 @@ class Grassmannian(object):
 			self.N = 2*n + 2
 			self.dimension = int(2.0*self.m*(self.n+1.0-self.m) + (self.m)*(self.m-1.0)*(0.5))
 		self.schubert_list = [sorted(c) for c in combinations(range(1, self.N + 1), self.m) if self.isotropic(c)]
+		self.special_classes = [(r, family) for r in range(1, self.n+self.k+1) for family in range(self.num_families(r))]
 		self.num_classes = len(self.schubert_list)
 		self.involve = True
-		if query_yes_no('Build intersection matrix for this Grassmannian?'):
-			self.build_intersection_matrix()
+		self.left_multiplication = True
+		#if query_yes_no('Build intersection matrix for this Grassmannian?'):
+		self.build_intersection_matrix()
+		#if query_yes_no('Add maximal torus for this Grassmannian? (requires SymPy)'):
+		self.build_torus()
 		
 ####INITIALIZE MATRICES
 	def load_intersection_matrix(self, M):
@@ -48,8 +52,19 @@ class Grassmannian(object):
 			for P in self.schubert_list]
 		d = (np.linalg.inv(self.intersection_matrix)).T
 		self.duals = [[int(n) for n in x] for x in d]
-			
 
+	def build_torus(self):
+		if self.type == 'A':
+			self.T = sympy.symbols('t0:'+str(self.N+1))
+		if self.type == 'C':	
+			self.T = sympy.symbols('t0:'+str(self.N+1))
+			self.T = [self.T[i] for i in range(self.n+1)] + [-self.T[self.N+1-i] for i in range(self.n+1,self.N+1)]
+		if self.type == 'B':
+			self.T = sympy.symbols('t0:'+str(self.N))
+			self.T = [self.T[i] for i in range(self.n+1)] + [0] + [-self.T[self.N-i] for i in range(self.n+1,self.N)]
+		if self.type == 'D':
+			self.T = sympy.symbols('t0:'+str(self.N+1))	
+			self.T = [self.T[i] for i in range(self.n+2)] + [-self.T[self.N+1-i] for i in range(self.n+2,self.N+1)]
 
 ####BRUHAT ORDER
 
@@ -68,6 +83,13 @@ class Grassmannian(object):
 		#ordered_interval = [[self.index2perm(X) for X in interval if self.dim(X) == d] for d in range(self.dim(Q), self.dim(P)+1)] 
 		ordered_interval = [[X for X in interval if self.dim(X) == d] for d in range(self.dim(Q), self.dim(P)+1)] 
 		return ordered_interval
+		
+	def perm_interval(self,Q,P):
+		interval = [X for X in self.schubert_list if (self.leq(Q, X) and self.leq(X, P)) ]
+		#ordered_interval = [[self.index2perm(X) for X in interval if self.dim(X) == d] for d in range(self.dim(Q), self.dim(P)+1)] 
+		ordered_interval = [[self.index2perm(X) for X in interval if self.dim(X) == d] for d in range(self.dim(Q), self.dim(P)+1)] 
+		return ordered_interval
+	
 	
 	def signature(self, Q, P):
 		return [len(I) for I in self.interval(Q,P)]
@@ -80,9 +102,11 @@ class Grassmannian(object):
 	def up_reflections(self,Q):
  		d = self.dim(Q)
  		up_classes = [X for X in self.schubert_list if (self.dim(X) == d+1) and self.leq(Q,X)]
- 		up_refs = [pf.covering(self.index2perm(Q),self.index2perm(P)) for P in up_classes]
+ 		if self.left_multiplication:
+ 			up_refs = [pf.left_covering(self.index2perm(Q),self.index2perm(P)) for P in up_classes]
+ 		else:
+ 			up_refs = [pf.right_covering(self.index2perm(Q),self.index2perm(P)) for P in up_classes]
  		return up_refs
-
 
 ####DRAW BRUHAT ORDER
 	def draw_interval(self,Q,P):
@@ -90,12 +114,16 @@ class Grassmannian(object):
 		interval = self.interval(Q,P)
 		for level in interval:
 			print level
+			#print [self.index2changzheng(X) for X in level]
 		print 'connectivity:'
-		connectivity = [[pf.covering(self.index2perm(X),self.index2perm(Y)) for (X,Y) in get_tuples(interval[c],interval[c+1])] for c in range(len(interval)-1)]
+		if self.left_multiplication:
+			connectivity = [[pf.left_covering(self.index2perm(X),self.index2perm(Y)) for (X,Y) in get_tuples(interval[c],interval[c+1])] for c in range(len(interval)-1)]
+		else:
+			connectivity = [[pf.right_covering(self.index2perm(X),self.index2perm(Y)) for (X,Y) in get_tuples(interval[c],interval[c+1])] for c in range(len(interval)-1)]
 		for level in connectivity:
 			print level
-		
-	def draw_duals(self, Q):
+
+	def draw_dual(self, Q):
 		for P in self.maximals(Q):
 			print 'bruhat interval for maximal element '+str(P) +':'
 			self.draw_interval(Q,P)
@@ -118,28 +146,6 @@ class Grassmannian(object):
 					return False
 		return True
 	
-	# def index_set_leq(self, R, S):
-	# 	if R not in self.schubert_list or S not in self.schubert_list:
-	# 		raise ValueError('input not an index set in this Grassmannian!')
-	# 	for i in range(self.m):
-	# 		if R[i] > S[i]:
-	# 			return False
-	# 	if self.type == 'D':
-	# 		for i in range(self.m):
-	# 			if (S[i] == self.n+2) and (R[i] == self.m+self.k):
-	# 				return False
-	# # 			if (self.dimension%2) == 1 and self.codim(R) == (self.dimension+1)/2 and self.codim(S) == (self.dimension-1)/2:
-	# # 				R_shift = []
-	# # 				for r in R:
-	# # 					if r in [self.n+1, self.n+2]:
-	# # 						R_shift.append(self.N+1-r)
-	# # 					else:
-	# # 						R_shift.append(r)
-	# # 				R_reflect = [self.N+1-r for r in reversed(R_shift)]		
-	# # 				if R_shift != R and S == R_reflect:
-	# # 					return False
-	# 	return True
-	# 	#return all([R[i] <= S[i] for i in range(self.m)])
 	
 	def leq(self, R, S):
 		if R not in self.schubert_list or S not in self.schubert_list:
@@ -152,6 +158,14 @@ class Grassmannian(object):
 				return pf.perm_leq(self.type,self.index2perm(R),self.index2perm(S))
 			else:
 				return pf.perm_geq(self.type,self.index2perm(R),self.index2perm(S))
+		return True
+
+	def silly_leq(self,R,S):
+		if R not in self.schubert_list or S not in self.schubert_list:
+			raise ValueError('input not an index set in this Grassmannian!')
+		for i in range(self.m):
+			if R[i] > S[i]:
+				return False
 		return True
 		
 	def index_involution(self,P):
@@ -255,6 +269,10 @@ class Grassmannian(object):
 		return P
 	
 	def index2part(self, P):
+		if self.type == 'C':
+			s = len([p for p in P if p <= self.n])
+			r = [p for p in range(self.n+1, self.N+1) if (self.N+1-p) not in P]
+			lam = [self.n + self.k + 1 - P[j] for j in range(s)] + [self.k + (j+1) -s -(r.index(P[j])+1) for j in range(s, self.m)]
 		if self.type == 'B':
 			s = len([p for p in P if p <= self.n])
 			r = [p for p in range(self.n+1, self.N+1) if (self.N+1-p) not in P]
@@ -312,6 +330,8 @@ class Grassmannian(object):
 		return P
 			
 	def special_schubert(self, r, family):
+		if self.type == 'A':
+			return [self.n+1-self.m-r]+range(self.n+1-self.m+1,self.n+1)
 		part = [0]*self.m
 		part[0] = r
 		if self.type == 'D':
@@ -343,7 +363,44 @@ class Grassmannian(object):
 		perm[abs(s[0])-1],perm[abs(s[1])-1] = sign_change*perm[abs(s[1])-1],sign_change*perm[abs(s[0])-1]
 		return perm
 		
-			
+	def index2changzheng(self, P):
+		if P not in self.schubert_list:
+			raise ValueError('input not an index set in this Grassmannian!')
+		T = list(P)
+		if self.type == 'A':
+			plength = self.n
+			perm_end = sorted(set(range(1,plength+1)) - set([self.n+1-c for c in T]))
+			perm = sorted([self.n+1-c for c in T]) + perm_end
+			return perm
+		if self.type == 'B':
+			for i in range(self.m):
+				if T[i] > self.n:
+					T[i] -= 1
+		plength = self.m+self.k
+		pvals = [x for x in reversed(range(1,plength+1) + range(-plength,0))]
+		perm_begin = sorted([pvals[i-1] for i in T])
+		perm_end = sorted(set(range(1,plength+1)) - set(map(abs,perm_begin)))
+		if self.type == 'D':
+			negs = len([x for x in perm_begin if x < 0])
+			if negs%2 == 1:
+				perm_end[0] *= -1
+		perm = perm_begin + perm_end
+		return perm	
+
+	def changzheng2index(self, perm):
+		if self.involve:
+			perm = pf.involution(self.type,self.m,self.n,perm)
+		plength = self.m+self.k
+		if self.type == 'A':
+			return [perm[i] for i in range(self.k,plength)]
+		pvals = range(-plength,0) + range(1, plength+1)
+		perm_end = [perm[i] for i in range(plength-self.m,plength)]
+		P = [pvals.index(i)+1 for i in perm_end]
+		if self.type == 'B':
+			for i in range(self.m):
+				if P[i] > self.n:
+					P[i] += 1
+		return P			
 
 ####PRINT DATA
 
@@ -352,7 +409,28 @@ class Grassmannian(object):
 		poss_plus = ''
 		for i in range(self.num_classes):
 			if V[i] != 0:
-				class_string += poss_plus + str(V[i]) + '*' + str(self.schubert_list[i]) 
+				class_string += poss_plus + '(' + str(V[i]) + ')' + '*' + str(self.schubert_list[i]) 
+				poss_plus = ' + '
+		class_string += ''
+		return class_string
+
+	def print_class_anders(self, V):
+		class_string = ''
+		poss_plus = ''
+		for i in range(self.num_classes):
+			if V[i] != 0:
+				class_string += poss_plus + '(' + str(V[i]) + ')' + '*' + str(self.index2part(self.schubert_list[i])) 
+				poss_plus = ' + '
+		class_string += ''
+		return class_string
+		
+
+	def print_class_changzheng(self, V):
+		class_string = ''
+		poss_plus = ''
+		for i in range(self.num_classes):
+			if V[i] != 0:
+				class_string += poss_plus + '(' + str(V[i]) + ')' + '*' + str(self.index2changzheng(self.schubert_list[i])) 
 				poss_plus = ' + '
 		class_string += ''
 		return class_string
@@ -368,15 +446,15 @@ class Grassmannian(object):
 	def print_special_schuberts(self):
 		for r in range(1, self.n+self.k+1):
 			for family in range(self.num_families(r)):
-				print 'r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.special_schubert(r, family))
+				print 'r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.index2changzheng(self.special_schubert(r, family)))
 				
 ####STUFF NOT IN GRASSMANNIAN CLASS				
 def get_tuples(A,B):
-			tuples_list = []
-			for i in A:
-				for j in B:
-					tuples_list.append((i,j))
-			return tuples_list
+	tuples_list = []
+	for i in A:
+		for j in B:
+			tuples_list.append((i,j))
+	return tuples_list
 			
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
