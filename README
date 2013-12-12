@@ -1,5 +1,5 @@
 The program currently consists of the following modules:
-schubert, grothendieck, permutation_functions.
+schubert, grothendieck, mobius, flag, permutation_functions.
 
 These modules are structured as follows:
 
@@ -7,8 +7,18 @@ These modules are structured as follows:
 and the various methods and object variables associated to it.  
 it requires permutation_functions.py.
 
+-flag.py defines the Flag class
+which represents a 2-step flag manifold, 
+as well as the various methods and object variables associated to it.  
+it also requires permutation_functions.py.
+
 -grothendieck.py contains the necessary functions for calculating the product of
 an arbitrary schubert class with a special schubert class.  most of the methods
 take a Grassmannian object as one of the arguments.  currently this module
 also contains functions for calculating equivariant Pieri coefficients in type B/C,
 although these will be moved to their own module soon.
+
+-mobius.py contains methods for investigating the combinatorics of
+dual classes, and in particular constructs the dual class of an arbirtary schubert class
+using only local information.  it depends on permutation_functions.py, and most of its
+methods take a Grassmannian object as an argument.
