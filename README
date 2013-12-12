@@ -1,33 +1,13 @@
 The program currently consists of the following modules:
-schubert, grothendieck, dual_classes, lenart_functions,
-and module_homomorphism, and permutation_functions.
+schubert, grothendieck.
 
 These modules are structured as follows:
 
 -schubert.py defines the Grassmannian class
-and the various methods and object variables associated to it.  it depends on
-permutation_functions.py.
+and the various methods and object variables associated to it.
 
 -grothendieck.py contains the necessary functions for calculating the product of
 an arbitrary schubert class with a special schubert class.  most of the methods
 take a Grassmannian object as one of the arguments.  currently this module
 also contains functions for calculating equivariant Pieri coefficients in type B/C,
 although these will be moved to their own module soon.
-
--dual_classes.py contains methods for investigating the combinatorics of
-dual classes, and in particular constructs the dual class of an arbirtary schubert class
-using only local information.  it depends on permutation_functions.py, and most of its
-methods take a Grassmannian object as an argument.
-
--lenart_functions.py implements Lenart and Postnikov's K-theoretic Monk's formula,
-found in their paper 'Affine Weyl Groups in K-theory and Reprensentation Theory.'
-It refers to permutation_functions.py and k_mult.py, and the methods take Grassmannian
-objects as arguments.
-
--module_homomorphism.py investigates the possibility of a k-theoretic module homomorphism
- analogous to the one in equivariant cohomology discovered by Buch, Kresch, and Tamvakis,
-in their paper 'A Giambelli formula for even orthogonal Grassmannians.'  It refers to
-k_mult.py and the methods take Grassmannian objects as arguments.
-
--permutation_functions.py contains basic functions for working with signed
-and unsigned permutations.
