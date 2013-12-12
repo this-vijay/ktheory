@@ -8,6 +8,10 @@ def _dots(perm, i, j):
 	perm2.insert(0,0)
 	return len([x for x in range(-plen, i+1) if cmp(x,0)*perm2[abs(x)] >= j])
 
+def _A_dots(perm, i ,j):
+	perm2 = list(perm)
+	return len([x for x in range(i) if perm2[x] >= j])
+
 def _empty_rect(perm, a, b):
 	return len([x for x in range(a) if abs(perm[x]) <= b]) == 0
 
@@ -19,18 +23,23 @@ def perm_leq(type, v, u):
 	if len(v) != len(u):
 		raise ValueError('attempting to compare permutations of different sizes')
 	plen = len(v)
-	for i in range(-plen, plen+1):
-		for j in range(-plen, plen+1):
-			if _dots(v,i,j) > _dots(u,i,j):
-				return False
-	if type in ['B','C']:
-		return True
-	for a in range(1, plen+2):
-		for b in range(1, plen+2):
-			if _empty_rect(v, a, b) and _empty_rect(u, a, b) and _dots(u, -a-1, b+1) == _dots(v, -a-1, b+1):
-				if (_dots(u, -1, b+1) + _dots(v, -1, b+1))%2 == 1:
-					#print 'False because of rectangle condition at a = ' + str(a) + ', b = ' + str(b)
+	if type == 'A':
+		for i in range(1,plen+1):
+			for j in range(1,plen+1):
+				if _A_dots(v,i,j) > _A_dots(u,i,j):
 					return False
+	if type in ['B','C']:	
+		for i in range(-plen, plen+1):
+			for j in range(-plen, plen+1):
+				if _dots(v,i,j) > _dots(u,i,j):
+					return False
+	if type == 'D':
+		for a in range(1, plen+1):
+			for b in range(1, plen+1):
+				if _empty_rect(v, a, b) and _empty_rect(u, a, b) and _dots(u, -a-1, b+1) == _dots(v, -a-1, b+1):
+					if (_dots(u, -1, b+1) + _dots(v, -1, b+1))%2 == 1:
+						#print 'False because of rectangle condition at a = ' + str(a) + ', b = ' + str(b)
+						return False
 	return True
 
 
@@ -141,8 +150,8 @@ def perm2trans(perm):
 	return flips[1]
 
 		
-def covering(u,v):
+def left_covering(u,v):
 	return perm2trans(perm_mult(v, perm_inverse(u)))
 	
-	
-	
+def right_covering(u,v):
+	return left_covering(perm_inverse(u),perm_inverse(v))

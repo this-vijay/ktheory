@@ -1,10 +1,11 @@
 The program currently consists of the following modules:
-schubert, grothendieck.
+schubert, grothendieck, permutation_functions.
 
 These modules are structured as follows:
 
 -schubert.py defines the Grassmannian class
-and the various methods and object variables associated to it.
+and the various methods and object variables associated to it.  
+it requires permutation_functions.py.
 
 -grothendieck.py contains the necessary functions for calculating the product of
 an arbitrary schubert class with a special schubert class.  most of the methods
