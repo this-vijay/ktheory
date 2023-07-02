@@ -29,9 +29,9 @@ def num_equations(g,P,Q):
 
 def equations(g, P, Q):
 	#if g.type == 'A':
-		#print('Sorry, this function is not properly implemented for type A.')
+		#print 'Sorry, this function is not properly implemented for type A.'
 	if not g.leq(Q,P):
-		print('Error--attempting to calculate equations of empty intersection.')
+		print 'Error--attempting to calculate equations of empty intersection.'
 		return 0, 0, set([])
 
 	#create diagram D(P,Q)
@@ -91,27 +91,24 @@ def equations(g, P, Q):
 
 
 def diagram(g,P,Q):
-	if not g.leq(Q,P):
-		print('Error--attempting to draw diagram of empty intersection.')
+	diagram = np.array([[int(j in range(Q[i], P[i]+1)) for j in range(1, g.N+1)] for i in range(g.m)])
+	#the following modifications to D(P,Q) make it a bit more illuminating
+	if g.type == 'D':
+		if g.n+1 in Q:
+			diagram[Q.index(g.n+1)][g.n+1] = 0
+		if g.n+2 in P:
+			diagram[P.index(g.n+2)][g.n] = 0
+	lin_eqns, I, cuts = equations(g,P,Q)
+	for c in list(lin_eqns):
+		diagram.T[c-1] = [0 for r in range(g.m)]
+	if g.type == 'D':
+		colors = ['blue', 'red']
+		for row in range(g.m):
+			for col in range(g.N):
+				print colored(diagram[row][col],colors[int(col in range(shrink(g,P,Q)[row]-1,P[row]))]),
+			print''
 	else:
-		diagram = np.array([[int(j in range(Q[i], P[i]+1)) for j in range(1, g.N+1)] for i in range(g.m)])
-		#the following modifications to D(P,Q) make it a bit more illuminating
-		if g.type == 'D':
-			if g.n+1 in Q:
-				diagram[Q.index(g.n+1)][g.n+1] = 0
-			if g.n+2 in P:
-				diagram[P.index(g.n+2)][g.n] = 0
-		lin_eqns, I, cuts = equations(g,P,Q)
-		for c in list(lin_eqns):
-			diagram.T[c-1] = [0 for r in range(g.m)]
-		if g.type == 'D':
-			colors = ['blue', 'red']
-			for row in range(g.m):
-				for col in range(g.N):
-					print(colored(diagram[row][col],colors[int(col in range(shrink(g,P,Q)[row]-1,P[row]))]),)
-				print('')
-		else:
-			print(diagram)
+		print diagram
 
 
 
@@ -133,14 +130,14 @@ def shrink(g,P,Q):
 		P2 = sorted([Q[i+1] for i in range(g.m-1) if P[i] >= Q[i+1] ] + [P[i] for i in range(g.m-1) if P[i] < Q[i+1]] + [P[g.m-1]])
 		P3 = sorted([max([c for c in range(Q[i],P2[i]+1) if c not in original_zero_columns and not (c == P2[i] and c == Q[i+1] and c-1 in cuts)]) for i in range(g.m-1)]+[P[g.m-1]])
 		if P3 not in g.schubert_list:
-			print('error: ' + str((Q,P,P2,P3)))
+			print 'error: ' + str((Q,P,P2,P3)) 
 		return P3
 	if g.type == 'D':
 		P2 = sorted([P[i] for i in range(g.m-1) if P[i] <= Q[i+1]] + [Q[i+1] for i in range(g.m-1) if P[i] > Q[i+1] and Q[i+1] not in [g.n+1,g.n+2]] + [g.N+1-Q[i+1] for i in range(g.m-1) if Q[i+1] in [g.n+1,g.n+2] and P[i] > Q[i+1]] + [P[g.m-1]])
 		P3 = sorted([P2[i] - (P2[i] == Q[i+1] and P2[i]-1 in cuts) for i in range(g.m-1)]+[P[g.m-1]])
 		P4 = sorted([max([c for c in range(Q[i],P3[i]+1) if c not in original_zero_columns]) for i in range(g.m-1)]+[P[g.m-1]])	
 		if P4 not in g.schubert_list:
-			print('error: ' + str((Q,P,P2,P3)))
+			print 'error: ' + str((Q,P,P2,P3)) 
 		return P4
 
 
@@ -192,7 +189,7 @@ def triple(g, P, T, r, family):
 		#subspace_eqns += (1-delta)
 		triple_list = []
 		for j in range(int(g.N - quad - lin - subspace_eqns)):
-			triple_list.append((-1)**j * 2**(quad - j) * sp.special.comb(quad,j))
+			triple_list.append((-1)**j * 2**(quad - j) * sp.comb(quad,j))
 		return delta*sum(triple_list)
 		#return sum(triple_list)	
 
@@ -201,7 +198,7 @@ def all_triples(g):
 		for T in [X for X in g.schubert_list if g.leq(X,P)]:
 			for r in range(1,g.n+g.k+1):
 				for family in range(g.num_families(r)):
-					print(triple(g,P,T,r,family))
+					print triple(g,P,T,r,family)
 
 
 ######################################################################################
@@ -347,7 +344,7 @@ def all_equiv_products(g):
 	for P in g.schubert_list:
 		for r in range(1, max_special+1):
 			for family in range(g.num_families(r)):
-				print(str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(equiv_product(g,P, r, family)))
+				print str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(equiv_product(g,P, r, family))
 		
 def all_equiv_products_anders(g):
 	if g.type == 'A':
@@ -357,7 +354,7 @@ def all_equiv_products_anders(g):
 	for P in g.schubert_list:
 		for r in range(1, max_special+1):
 			for family in range(g.num_families(r)):
-				print(str(g.index2part(g.special_schubert(r, family))) + ' * ' + str(g.index2part(P)) + '=' + g.print_class_anders(equiv_product(g,P, r, family)))
+				print  str(g.index2part(g.special_schubert(r, family))) + ' * ' + str(g.index2part(P)) + '=' + g.print_class_anders(equiv_product(g,P, r, family))
 
 def all_equiv_products_changzheng(g):
 	if g.type == 'A':
@@ -367,15 +364,15 @@ def all_equiv_products_changzheng(g):
 	for P in g.schubert_list:
 		for r in range(1, max_special+1):
 			for family in range(g.num_families(r)):
-				print(str(g.index2changzheng(P)) + ' * ' + str(g.index2changzheng(g.special_schubert(r, family))) + '=' + g.print_class_changzheng(equiv_product(g,P, r, family)))
+				print str(g.index2changzheng(P)) + ' * ' + str(g.index2changzheng(g.special_schubert(r, family))) + '=' + g.print_class_changzheng(equiv_product(g,P, r, family))
 		
 def test_knutson_tao_divisor_formula(g):
 	T = sympy.symbols('t0:'+str(g.n+1))
 	for P in g.schubert_list:
 		div_hyp = sum([T[i] for i in range(1,g.n+1) if i not in P]) + sum([-T[i] for i in range(1,g.n-g.m+1)])
 		if div_hyp != equiv_pieri(g,P,P,1,0):
-			print(P, div_hyp)
-			print(equiv_pieri(g,P,P,1,0))
+			print P, div_hyp
+			print equiv_pieri(g,P,P,1,0)
 
 def test_reduction_to_type_A(g,P,Q,r,family):
 	lin_eqns, I , cuts = equations(g,P,Q)
@@ -401,7 +398,7 @@ def test_reduction_to_type_A(g,P,Q,r,family):
 			deletion_choices.pop()
 			quad -=1
 	new_P = [c for c in range(1,g.N+1) if c not in lin_eqns]
-	#print(new_P)
+	#print new_P
 	s = ["".join(seq) for seq in itertools.product("01", repeat=quad)]
 	deletion_lists = [[deletion_choices[i][int(s[j][i])] for i in range(quad)] for j in range(2**quad)]
 	type_A_symbols = [sorted(list(set(new_P) - set(del_list))) for del_list in deletion_lists]
@@ -409,35 +406,35 @@ def test_reduction_to_type_A(g,P,Q,r,family):
 		type_A_symbols = [new_P]
 	if dim_redux > 0:		
 		type_A_symbols = [[p for p in X if p < g.n+1] + [p-dim_redux for p in X if p > g.n+1] for X in type_A_symbols]
-	print(type_A_symbols)
+	print type_A_symbols
 	new_m = len(type_A_symbols[0])
-	#print(new_m)
+	#print new_m
 	new_N = g.N-dim_redux
 	h = schubert.Grassmannian('A',new_m,new_N)
 	new_r = g.m+r-new_m + extra_subspace_eqn
 	if new_r < 0:
-		print(colored('ERROR','red'))
-	#print(new_r)
+		print colored('ERROR','red')
+	#print new_r
 	type_A_pieri = sum([equiv_pieri(h,X,X,new_r,0) for X in type_A_symbols]) / div_factor
 	type_BC_pieri = equiv_pieri(g,P,Q,r,0)
-	#print(type_BC_pieri)
+	#print type_BC_pieri
 	dict_A = [(h.T[i],g.T[i]) for i in range(g.n+1)]
 	dict_B = []	
 	if g.N == h.N:
 		dict_B = [(h.T[g.n+1],g.T[g.n+1])]
 	dict_C = [(h.T[h.N+1-i], g.T[g.N+1-i]) for i in range(1,g.n+1)]
 	T2T_IG = dict(dict_A + dict_B + dict_C)
-	#print(T2T_IG)
+	#print T2T_IG
 	hope = type_A_pieri.subs(T2T_IG)
-	#print(hope)
-	#print(colored(hope,'green'))
-	#print(colored(type_BC_pieri, 'blue'))
+	#print hope
+	#print colored(hope,'green') 
+	#print colored(type_BC_pieri, 'blue')
 	if sympy.expand(hope) != type_BC_pieri:
-		print(colored('ERRRERRRRRRRRRRRRRRRRRRRRROORROOOOOOOOOOOOOOORRRRR!!!!!!!!!!!!!!!','red'))
-		print(colored(hope,'green'))
-		print(colored(type_BC_pieri, 'blue'))
+		print colored('ERRRERRRRRRRRRRRRRRRRRRRRROORROOOOOOOOOOOOOOORRRRR!!!!!!!!!!!!!!!','red')
+		print colored(hope,'green') 
+		print colored(type_BC_pieri, 'blue')
 	#else:
-	#	print(colored(hope,'green'))
+	#	print colored(hope,'green') 
 
 def test_reduction_to_type_A_for_entire_Grassmannian(g):
 	f = open('failures.txt', 'w')
@@ -451,7 +448,7 @@ def test_reduction_to_type_A_for_entire_Grassmannian(g):
 				for Q in [X for X in g.schubert_list if (goes_to(g,P,X) and g.leq(X,special))]:
 					deg = g.codim(P) + r - g.codim(Q)
 					if deg >= 0:
-						print(r,P,Q)
+						print r,P,Q
 						#success = False
 						#attempt = 0
 						#while success == False and attempt <= 2:
@@ -461,22 +458,22 @@ def test_reduction_to_type_A_for_entire_Grassmannian(g):
 							test_reduction_to_type_A(g,P,Q,r,family)
 							#success = True
 							signal.alarm(0) # disable alarm
-						except Exception as msg:
-							print('Timed out, moving on!')
-							print(msg)
-							print(str(r)+', '+str(P)+', '+str(Q), file=f)
+						except Exception, msg:
+							print 'Timed out, moving on!'
+							print msg
+							print >> f, str(r)+', '+str(P)+', '+str(Q)
 							#attempt += 1
-							#print('Timed out on attempt ' + str(attempt) + '. Retrying...')
+							#print 'Timed out on attempt ' + str(attempt) + '. Retrying...'
 						#if success == False:
-						#	print('Failed to compute.  Moving on.')
-						#	print(str(r)+', '+str(P)+', '+str(Q), file=f)
+						#	print 'Failed to compute.  Moving on.'
+						#	print >> f, str(r)+', '+str(P)+', '+str(Q)
 							#print(str(r)+', '+str(P)+', '+str(Q), file='failures.txt')
 						gc.collect()
 	f.close()
 	
 def test_whether_type_D_pieri_are_restriction_type(g,pieri_coef):
 	for m in range(1,g.N):
-		print(m)
+		print m
 		#h = schubert.Grassmannian('A',m,g.N)
 		h = schubert.Grassmannian('A',m,g.N+1)
 		#T2T_IG = dict([(h.T[i],g.T[i]) for i in range(h.N+1)])
@@ -489,7 +486,7 @@ def test_whether_type_D_pieri_are_restriction_type(g,pieri_coef):
 				test_poly = equiv_pieri(h,C,C,p,family)
 				hope = sympy.factor(sympy.expand(test_poly.subs(T2T_IG)))
 				if hope == pieri_coef:
-					print(m, C, p)
+					print m, C, p
 
 ######################################################################################
 
@@ -511,7 +508,7 @@ def all_products(g):
 	for P in g.schubert_list:
 		for r in range(1, g.n+g.k+1):
 			for family in range(g.num_families(r)):
-				print(str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(product(g,P, r, family)))
+				print str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(product(g,P, r, family))
 		
 
 
@@ -590,19 +587,19 @@ def goes_to(g,P,Q):
 def test_alternating(g):
 	for p in range(len(g.schubert_list)):
 		P = g.schubert_list[p]
-		print(p)
+		print p
 		for r in range(1, g.n+g.k+1):
 			for family in range(g.num_families(r)):
 				product_class = product(g,P, r, family)
 				for i in range(g.num_classes):
 					if ((-1)**(g.distance(P, g.schubert_list[i]) - r)) * product_class[i] < 0:
-						print(str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(product(g,P, r, family)) + ' has error in sign of ' + str(g.schubert_list[i]))
+						print str(P) + ' * ' + str(g.special_schubert(r, family)) + '=' + g.print_class(product(g,P, r, family)) + ' has error in sign of ' + str(g.schubert_list[i])
 
 def test_birational_projection(g,P,Q):
 	image_dim = g.N -1 - sum(num_equations(g,P,Q))
 	richardson_dim = g.dimension - g.codim(P) - g.dim(Q)
 	cover_dim = richardson_dim + g.m - 1
-	#print(cover_dim, image_dim)
+	#print cover_dim, image_dim
 	return cover_dim == image_dim
 
 
@@ -704,7 +701,7 @@ def dumb_shrink(g,P,Q):
 		P2 = sorted([Q[i+1] for i in range(g.m-1) if P[i] >= Q[i+1] ] + [P[i] for i in range(g.m-1) if P[i] < Q[i+1]] + [P[g.m-1]])
 		P3 = sorted([max([c for c in range(Q[i],P2[i]+1) if c not in original_zero_columns and not (c == P2[i] and c == Q[i+1] and c-1 in cuts)]) for i in range(g.m-1)]+[P[g.m-1]])
 		if P3 not in g.schubert_list:
-			print('error: ' + str((Q,P,P2,P3)))
+			print 'error: ' + str((Q,P,P2,P3)) 
 		return P3
 
 #GENERAL FUNCTIONS

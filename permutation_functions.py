@@ -2,11 +2,14 @@
 
 ####COMPARING PERMUTATIONS
 
+def sign(x):
+    return (x > 0) - (x < 0)
+
 def _dots(perm, i, j):
 	plen = len(perm)
 	perm2 = list(perm)
 	perm2.insert(0,0)
-	return len([x for x in range(-plen, i+1) if cmp(x,0)*perm2[abs(x)] >= j])
+	return len([x for x in range(-plen, i+1) if sign(x)*perm2[abs(x)] >= j])
 
 def _A_dots(perm, i ,j):
 	perm2 = list(perm)
@@ -63,11 +66,11 @@ def perm_length(type, perm):
 def perm_mult(s, t):
 	if len(s) != len(t):
 		raise ValueError('Permuations not same length.')
-	return [cmp(t[i],0)*s[abs(t[i])-1] for i in range(len(s))]	
+	return [sign(t[i])*s[abs(t[i])-1] for i in range(len(s))]	
 
 def perm_inverse(s):
 	abs_s = [abs(i) for i in s]
-	return [ ( cmp(s[abs_s.index(i)],0) )*(abs_s.index(i)+1) for i in range(1,len(s)+1) ]
+	return [ ( sign(s[abs_s.index(i)]) )*(abs_s.index(i)+1) for i in range(1,len(s)+1) ]
 
 
 ###INVOLUTION OF W^P
@@ -75,10 +78,10 @@ def perm_inverse(s):
 def involution(type, m,n,u):
 	plen = len(u)
 	if type == 'A':
-		longest_word = range(1,plen+1)
+		longest_word = list(range(1,plen+1))
 		longest_word.reverse()
 	else:
-		longest_word = range(-plen,0)
+		longest_word = list(range(-plen,0))
 		longest_word.reverse()
 		if type == 'D' and (plen)%2:
 			longest_word[0] = 1
@@ -102,7 +105,7 @@ def top_element(type, m, n):
 			if T[i] > n:
 				T[i] -= 1
 	perm = range(plength)
-	pvals = range(-plength,0) + range(1, plength+1)
+	pvals = [*range(-plength,0), *range(1, plength+1)]
 	perm_end = [pvals[i-1] for i in T]
 	perm_begin = sorted(set(range(1,plength+1)) - set(map(abs,perm_end)))
 	if type == 'D':
@@ -117,7 +120,7 @@ def top_element(type, m, n):
 def perm2cycle(perm):
 	p_len = len(perm)
 	perm_function = dict([(i+1,perm[i]) for i in range(p_len)]+[(-i-1,-perm[i]) for i in range(p_len)])
-	domain = range(-p_len,0)+range(1,p_len+1) 
+	domain = [*range(-p_len,0), *range(1,p_len+1)]
 	cycles = []
 	visited = set([])
 	for i in domain:

@@ -110,28 +110,28 @@ class Grassmannian(object):
 
 ####DRAW BRUHAT ORDER
 	def draw_interval(self,Q,P):
-		print('classes by dimension:')
+		print 'classes by dimension:'
 		interval = self.interval(Q,P)
 		for level in interval:
-			print(level)
-			#print([self.index2changzheng(X) for X in level])
-		print('connectivity:')
+			print level
+			#print [self.index2changzheng(X) for X in level]
+		print 'connectivity:'
 		if self.left_multiplication:
 			connectivity = [[pf.left_covering(self.index2perm(X),self.index2perm(Y)) for (X,Y) in get_tuples(interval[c],interval[c+1])] for c in range(len(interval)-1)]
 		else:
 			connectivity = [[pf.right_covering(self.index2perm(X),self.index2perm(Y)) for (X,Y) in get_tuples(interval[c],interval[c+1])] for c in range(len(interval)-1)]
 		for level in connectivity:
-			print(level)
+			print level
 
 	def draw_dual(self, Q):
 		for P in self.maximals(Q):
-			print('bruhat interval for maximal element '+str(P) +':')
+			print 'bruhat interval for maximal element '+str(P) +':'
 			self.draw_interval(Q,P)
 			
 	def draw_bruhat(self):
-		Q = list(range(1,self.m+1))
-		P = list(range(self.N-self.m+1, self.N+1))
-		print('bruhat order for entire poset:')
+		Q = range(1,self.m+1)
+		P = range(self.N-self.m+1, self.N+1)
+		print 'bruhat order for entire poset:'
 		self.draw_interval(Q,P)
 
 
@@ -302,7 +302,7 @@ class Grassmannian(object):
 				if T[i] > self.n:
 					T[i] -= 1
 		perm = range(plength)
-		pvals = [*range(-plength,0), *range(1, plength+1)]
+		pvals = range(-plength,0) + range(1, plength+1)
 		perm_end = [pvals[i-1] for i in T]
 		perm_begin = sorted(set(range(1,plength+1)) - set(map(abs,perm_end)))
 		if self.type == 'D':
@@ -377,7 +377,7 @@ class Grassmannian(object):
 				if T[i] > self.n:
 					T[i] -= 1
 		plength = self.m+self.k
-		pvals = list(reversed([*range(1,plength+1), *range(-plength,0)]))
+		pvals = [x for x in reversed(range(1,plength+1) + range(-plength,0))]
 		perm_begin = sorted([pvals[i-1] for i in T])
 		perm_end = sorted(set(range(1,plength+1)) - set(map(abs,perm_begin)))
 		if self.type == 'D':
@@ -440,13 +440,13 @@ class Grassmannian(object):
 	
 	def print_all_duals(self):
 		for P in self.schubert_list:
-			print('dual to ' + str(P) + ':')
-			print(self.print_dual(P))
+			print 'dual to ' + str(P) + ':'
+			print self.print_dual(P)
 			
 	def print_special_schuberts(self):
 		for r in range(1, self.n+self.k+1):
 			for family in range(self.num_families(r)):
-				print('r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.index2changzheng(self.special_schubert(r, family))))
+				print 'r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.index2changzheng(self.special_schubert(r, family)))
 				
 ####STUFF NOT IN GRASSMANNIAN CLASS				
 def get_tuples(A,B):
