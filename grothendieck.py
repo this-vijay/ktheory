@@ -507,6 +507,8 @@ def product(g, P, r, family):
 	#g.print_class(product_class)
 	return product_class
 
+
+
 def all_products(g):
 	for P in g.schubert_list:
 		for r in range(1, g.n+g.k+1):
@@ -515,6 +517,12 @@ def all_products(g):
 		
 
 
+def all_products_perm(g):
+	for P in g.schubert_list:
+		for r in range(1, g.n+g.k+1):
+			for family in range(g.num_families(r)):
+				print(str(g.index2perm(P)) + ' * ' + str(g.index2perm(g.special_schubert(r, family))) + '=' + g.print_class_perm(product(g,P, r, family)))
+		
 
 
 

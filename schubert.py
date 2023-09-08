@@ -30,11 +30,12 @@ class Grassmannian(object):
 			self.k = n + 1 - m
 			self.N = 2*n + 2
 			self.dimension = int(2.0*self.m*(self.n+1.0-self.m) + (self.m)*(self.m-1.0)*(0.5))
+		self.involve = False
 		self.schubert_list = [sorted(c) for c in combinations(range(1, self.N + 1), self.m) if self.isotropic(c)]
+		self.perm_list = [self.index2perm(P) for P in self.schubert_list]
 		self.special_classes = [(r, family) for r in range(1, self.n+self.k+1) for family in range(self.num_families(r))]
 		self.num_classes = len(self.schubert_list)
-		self.involve = True
-		self.left_multiplication = True
+		self.left_multiplication = False
 		#if query_yes_no('Build intersection matrix for this Grassmannian?'):
 		self.build_intersection_matrix()
 		#if query_yes_no('Add maximal torus for this Grassmannian? (requires SymPy)'):
@@ -320,7 +321,7 @@ class Grassmannian(object):
 		plength = self.m+self.k
 		if self.type == 'A':
 			return [perm[i] for i in range(self.k,plength)]
-		pvals = range(-plength,0) + range(1, plength+1)
+		pvals = [*range(-plength,0), *range(1, plength+1)]
 		perm_end = [perm[i] for i in range(plength-self.m,plength)]
 		P = [pvals.index(i)+1 for i in perm_end]
 		if self.type == 'B':
@@ -414,6 +415,16 @@ class Grassmannian(object):
 		class_string += ''
 		return class_string
 
+	def print_class_perm(self, V):
+		class_string = ''
+		poss_plus = ''
+		for i in range(self.num_classes):
+			if V[i] != 0:
+				class_string += poss_plus + '(' + str(V[i]) + ')' + '*' + str(self.index2perm(self.schubert_list[i])) 
+				poss_plus = ' + '
+		class_string += ''
+		return class_string
+		
 	def print_class_anders(self, V):
 		class_string = ''
 		poss_plus = ''
@@ -443,10 +454,10 @@ class Grassmannian(object):
 			print('dual to ' + str(P) + ':')
 			print(self.print_dual(P))
 			
-	def print_special_schuberts(self):
+	def print_special_schuberts_perm(self):
 		for r in range(1, self.n+self.k+1):
 			for family in range(self.num_families(r)):
-				print('r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.index2changzheng(self.special_schubert(r, family))))
+				print('r = ' + str(r) + ', type = ' + str(family) + ': ' + str(self.index2perm(self.special_schubert(r, family))))
 				
 ####STUFF NOT IN GRASSMANNIAN CLASS				
 def get_tuples(A,B):
